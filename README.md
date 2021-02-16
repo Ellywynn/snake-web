@@ -10,6 +10,7 @@ This game allows you to play for a snake, eat apples and try not to eat yourself
 - Pure CSS
 - JS canvas
 - Responsible JS interface(you need to reload page in order to resize everything)
+- Randomization
 
 ## Screenshots
 ### Gameplay:
