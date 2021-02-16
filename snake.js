@@ -1,8 +1,12 @@
 // the size of one snake ceil
-const CEIL_SIZE = 20;
+const CEIL_SIZE = Math.ceil(window.innerWidth / 78);//Math.floor(window.innerWidth / 78);
+
+const wCeilNumber = Math.floor((window.innerWidth / CEIL_SIZE) / 1.5);
+const hCeilNumber = Math.floor((window.innerHeight / CEIL_SIZE) / 1.3);
 
 // canvas width and height
-const WIDTH = CEIL_SIZE * 40, HEIGHT = CEIL_SIZE * 30;
+const WIDTH = CEIL_SIZE * wCeilNumber;
+const HEIGHT = CEIL_SIZE * hCeilNumber;
 
 // initial size of the snake
 const INITIAL_SNAKE_SIZE = 5;
@@ -28,21 +32,19 @@ let apple = {x: 0, y: 0}
 // snake velocity
 let dx, dy;
 
-// keyboard input
-document.addEventListener('keydown', updateInput);
-document.addEventListener('keydown', function(){
-    if(newGame){
-        newGame = false;
-        changeGameText();
-        update();
-    }
-});
-
 let newGame = true;
 let isOver = false;
 let changingDirection = false;
 
+// PROGRAM START
+resizeText();
 main();
+
+
+
+
+
+
 
 // FUNCTIONS
 
@@ -86,6 +88,7 @@ function updateSnake(){
     // in other words, move the snake
     snake.unshift(head);
 
+    // if snake ate apple, add score and spawn new apple
     if(head.x === apple.x && head.y === apple.y){
         addScore();
         spawnApple();
@@ -95,17 +98,34 @@ function updateSnake(){
 }
 
 function clearCanvas(){
-    ctx.fillStyle = '#afa';
-    ctx.strokeStyle = 'black';
+    ctx.fillStyle = '#aaa';
+    ctx.strokeStyle = '#444';
 
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    ctx.strokeRect(0, 0, WIDTH, HEIGHT);
+    // draw the grid
+    for(let i = 0; i < hCeilNumber; i++){
+        for(let j = 0; j < wCeilNumber; j++){
+            ctx.fillRect(j * CEIL_SIZE, i * CEIL_SIZE, CEIL_SIZE, CEIL_SIZE);
+            ctx.strokeRect(j * CEIL_SIZE, i * CEIL_SIZE, CEIL_SIZE, CEIL_SIZE);
+        }
+    }
 }
 
 function main(){
     clearCanvas();
     initializeGame();
     draw();
+
+    // keyboard input
+    document.addEventListener('keydown', updateInput);
+    
+    // asks to press any key to start the game
+    document.addEventListener('keydown', function(){
+    if(newGame){
+        newGame = false;
+        changeGameText();
+        update();
+    }
+});
 }
 
 function update(){
@@ -137,10 +157,16 @@ function updateInput(event){
     changingDirection = true;
 
     // arrow keys code
-    const LEFT_KEY = 37;
-    const RIGHT_KEY = 39;
-    const UP_KEY = 38;
-    const DOWN_KEY = 40;
+    const ARROW_LEFT_KEY = 37;
+    const ARROW_RIGHT_KEY = 39;
+    const ARROW_UP_KEY = 38;
+    const ARROW_DOWN_KEY = 40;
+
+    // WASD keys
+    const W = 87;
+    const A = 65;
+    const S = 83;
+    const D = 68;
     
     // pressed key code
     const key = event.keyCode;
@@ -152,46 +178,44 @@ function updateInput(event){
     const left = dx === -CEIL_SIZE;
 
     // update velocity
-    if(key === RIGHT_KEY && !left){
+    if((key === ARROW_RIGHT_KEY || key === D) && !left){
         dx = CEIL_SIZE;
         dy = 0;
     }
 
-    if(key === LEFT_KEY && !right){
+    if((key === ARROW_LEFT_KEY || key === A) && !right){
         dx = -CEIL_SIZE;
         dy = 0;
     }
 
-    if(key === UP_KEY && !down){
+    if((key === ARROW_UP_KEY || key === W) && !down){
         dy = -CEIL_SIZE;
         dx = 0;
     }
 
-    if(key === DOWN_KEY && !up){
+    if((key === ARROW_DOWN_KEY || key === S) && !up){
         dy = CEIL_SIZE;
         dx = 0;
     }
 }
 
 function initializeGame(){
-    // initialize the snake
-    for(let i = 0; i < INITIAL_SNAKE_SIZE; i++)
-        snake.push({x: 40 + i*CEIL_SIZE, y: 60});
-
+    spawnSnake();
     spawnApple();
 
-    dx = 0, dy = CEIL_SIZE;
     score = 0;
     if(!newGame)
-    scoreText.textContent = score.toString();
+        scoreText.textContent = score.toString();
 }
 
 function addScore(){
+    // add score and change text
     score += 10;
     scoreText.textContent = score.toString();
 }
 
 function spawnApple(){
+    // randomize x and y coordinates
     let x = Math.floor((Math.random() * WIDTH / CEIL_SIZE)) * CEIL_SIZE;
     let y = Math.floor((Math.random() * HEIGHT / CEIL_SIZE)) * CEIL_SIZE;
 
@@ -201,7 +225,7 @@ function spawnApple(){
 
 function drawApple(){
     ctx.fillStyle = 'red';
-    ctx.strokeStyle = 'lightred'
+    ctx.strokeStyle = 'darkred'
 
     ctx.fillRect(apple.x, apple.y, CEIL_SIZE, CEIL_SIZE);
     ctx.strokeRect(apple.x, apple.y, CEIL_SIZE, CEIL_SIZE);
@@ -224,9 +248,91 @@ function checkSnakeCollision(){
     }
 }
 
+// if game is over
 function gameOver(){
     isOver = true;
+
+    // set the game over text
     let text = document.querySelector('#score');
     text.innerHTML = "Game is over. Press <span class='redText'>Ctrl + R</span> to restart. Final score: ";
     text.appendChild(scoreText);
+}
+
+// spawns snake
+function spawnSnake(){
+    // spawn snake according to the x coordinates
+    let spawnX = (x, y) => {
+        for(let i = 0; i < INITIAL_SNAKE_SIZE; i++)
+        snake.push({x: x + i*CEIL_SIZE, y: y});
+        dx = -CEIL_SIZE;
+        dy = 0;
+    };
+
+    // spawn snake according to the y coordinates
+    let spawnY = (x, y) => {
+        for(let i = 0; i < INITIAL_SNAKE_SIZE; i++)
+            snake.push({x: x, y: y - i*CEIL_SIZE});
+        dx = 0;
+        dy = CEIL_SIZE;
+    };
+
+    // tries to randomize suitable x and y coordinates
+    let trySpawn = function(){
+        // randomize x and y coordinates
+        let x = Math.floor(Math.random() * WIDTH / CEIL_SIZE) * CEIL_SIZE;
+        let y = Math.floor(Math.random() * HEIGHT / CEIL_SIZE) * CEIL_SIZE;
+
+        // success randomization booleans
+        let xsuccess = false, ysuccess = false;
+
+        // if x coordinate allow to fit the snake, set x success to true
+        if(x > CEIL_SIZE*INITIAL_SNAKE_SIZE &&
+             x < WIDTH - CEIL_SIZE * INITIAL_SNAKE_SIZE)
+            xsuccess = true;
+        
+        // if y coordinate allow to fit the snake, set y success to true
+        if(y > CEIL_SIZE*INITIAL_SNAKE_SIZE &&
+             y < HEIGHT - CEIL_SIZE * INITIAL_SNAKE_SIZE)
+            ysuccess = true;
+        
+        // if randomization is not successfull, return false
+        if(!xsuccess && !ysuccess){
+            return false;
+        }
+        // if x and y are success
+        else if(xsuccess && ysuccess){
+            // randomize in which direction to push snake(x or y)
+            let direction = Math.floor(Math.random() * 2);
+            // spawn snake according to randomized direction
+            if(direction == 0){
+                spawnX(x, y);
+            }else{
+                spawnY(x, y);
+            }
+        }
+        // if there is only x success, spawn snake according to the x coordinates
+        else if(xsuccess){
+            spawnX(x, y);
+        }
+        // if there is only y success, spawn snake according to the y coordinates
+        else{
+            spawnY(x, y);
+        }
+        return true;
+    }
+
+    // try to spawn snake whlie proper place will not be found
+    let success = false;
+    while(!success){
+        success = trySpawn();
+    }
+}
+
+// resizes texts according to the window size
+function resizeText(){
+    document.querySelector('#title').style = 'font-size: ' + Math.floor(window.innerHeight / 100 * 6).toString() + 'px;';
+
+    document.querySelector('#score').style = 'font-size: ' + Math.floor(window.innerHeight / 100 * 4).toString() + 'px;';
+    
+    document.querySelector('#creator').style = 'font-size: ' + Math.floor(window.innerHeight / 100 * 2).toString() + 'px;';
 }

@@ -4,14 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Game</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <h1 id="title">Snake Game</h1>
-        <h2 id="score">Press any key to start 
-            <span id="scoreNumber"></span></h2>
+
+        <h2 id="score"> <span class="redText">Press any key</span> to start
+            <span id="scoreNumber"></span>
+        </h2>
+
         <canvas id="gameField">Canvas</canvas>
+
+        <footer>
+            <h3 id="creator">Made with <span style="color: red">&#10084;</span> by <a href="https://github.com/Ellywynn"
+                target="_blank">Ellywynn</a></h3>
+        </footer>
         <script src="snake.js"></script>
     </div>
 </body>
